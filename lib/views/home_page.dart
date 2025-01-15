@@ -56,7 +56,7 @@ class _HomePageState extends State<HomePage> {
                               horizontal: 10, vertical: 5),
                           child: ListTile(
                             leading: CircleAvatar(
-                              child: Text(name[0]),
+                              child: Text(name[0]), // Mengambil huruf pertama
                             ),
                             title: Text(name),
                             subtitle: Text('Ibukota: $capital\nBenua: $region'),
@@ -77,6 +77,16 @@ class _HomePageState extends State<HomePage> {
                                 });
                               },
                             ),
+                            onTap: () {
+                              // Menavigasi ke halaman detail saat diklik
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      DetailNegaraPage(negara: negaras),
+                                ),
+                              );
+                            },
                           ),
                         );
                       },
@@ -98,10 +108,20 @@ class _HomePageState extends State<HomePage> {
                               horizontal: 10, vertical: 5),
                           child: ListTile(
                             leading: CircleAvatar(
-                              child: Text(name[0]),
+                              child: Text(name[0]), // Mengambil huruf pertama
                             ),
                             title: Text(name),
                             subtitle: Text('Ibukota: $capital\nBenua: $region'),
+                            onTap: () {
+                              // Menavigasi ke halaman detail saat diklik
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      DetailNegaraPage(negara: negaras),
+                                ),
+                              );
+                            },
                           ),
                         );
                       },
@@ -155,11 +175,50 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
+class DetailNegaraPage extends StatelessWidget {
+  final Map<String, dynamic> negara;
 
+  const DetailNegaraPage({Key? key, required this.negara}) : super(key: key);
 
+  @override
+  Widget build(BuildContext context) {
+    final name = negara["name"]?["common"] ?? "Unknown Country";
+    final capital = negara["capital"]?.isNotEmpty ?? false
+        ? negara["capital"][0]
+        : "No Capital";
+    final region = negara["region"] ?? "No Region";
+    final population = negara["population"]?.toString() ?? "No Data";
+    final languages = negara["languages"] != null
+        ? negara["languages"].values.join(", ")
+        : "No Language Info";
 
-
-
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(name),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Nama Negara: $name',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10),
+            Text('Ibukota: $capital', style: TextStyle(fontSize: 16)),
+            SizedBox(height: 10),
+            Text('Benua: $region', style: TextStyle(fontSize: 16)),
+            SizedBox(height: 10),
+            Text('Populasi: $population', style: TextStyle(fontSize: 16)),
+            SizedBox(height: 10),
+            Text('Bahasa: $languages', style: TextStyle(fontSize: 16)),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 
 
