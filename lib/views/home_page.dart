@@ -26,9 +26,13 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: new Image.asset(
-          "images/logo.png",
-          width: 200.0,
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        title: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image.asset(
+            "images/logo.png",
+            width: 200.0,
+          ),
         ),
       ),
       body: isLoading
@@ -36,7 +40,10 @@ class _HomePageState extends State<HomePage> {
               child: CircularProgressIndicator()) // Indikator loading
           : errorMessage != null
               ? Center(
-                  child: Text(errorMessage!),
+                  child: Text(
+                    errorMessage!,
+                    style: TextStyle(fontSize: 16, color: Colors.red),
+                  ),
                 )
               : currentIndex == 0
                   // Tab Home
@@ -53,16 +60,33 @@ class _HomePageState extends State<HomePage> {
 
                         return Card(
                           margin: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 5),
+                              horizontal: 12, vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          elevation: 5,
                           child: ListTile(
                             leading: CircleAvatar(
-                              child: Text(name[0]), // Mengambil huruf pertama
+                              backgroundColor: Colors.blueAccent,
+                              child: Text(
+                                name[0],
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
-                            title: Text(name),
-                            subtitle: Text('Ibukota: $capital\nBenua: $region'),
+                            title: Text(
+                              name,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Text(
+                              'Ibukota: $capital\nBenua: $region',
+                              style: TextStyle(fontSize: 14),
+                            ),
                             trailing: IconButton(
                               icon: Icon(
-                                Icons.favorite,
+                                Icons.favorite_border,
                                 color: favoriteNegara.contains(negaras)
                                     ? Colors.red
                                     : Colors.grey,
@@ -105,13 +129,30 @@ class _HomePageState extends State<HomePage> {
 
                         return Card(
                           margin: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 5),
+                              horizontal: 12, vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          elevation: 5,
                           child: ListTile(
                             leading: CircleAvatar(
-                              child: Text(name[0]), // Mengambil huruf pertama
+                              backgroundColor: Colors.blueAccent,
+                              child: Text(
+                                name[0],
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
-                            title: Text(name),
-                            subtitle: Text('Ibukota: $capital\nBenua: $region'),
+                            title: Text(
+                              name,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Text(
+                              'Ibukota: $capital\nBenua: $region',
+                              style: TextStyle(fontSize: 14),
+                            ),
                             onTap: () {
                               // Menavigasi ke halaman detail saat diklik
                               Navigator.push(
@@ -133,6 +174,8 @@ class _HomePageState extends State<HomePage> {
             currentIndex = index;
           });
         },
+        selectedItemColor: Colors.blueAccent,
+        unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
@@ -194,6 +237,7 @@ class DetailNegaraPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: const Color.fromARGB(255, 251, 252, 255),
         title: Text(name),
       ),
       body: Padding(
@@ -203,22 +247,251 @@ class DetailNegaraPage extends StatelessWidget {
           children: [
             Text(
               'Nama Negara: $name',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: const Color.fromARGB(255, 109, 186, 249)),
             ),
+            SizedBox(height: 12),
+            Text('Ibukota: $capital', style: TextStyle(fontSize: 18)),
             SizedBox(height: 10),
-            Text('Ibukota: $capital', style: TextStyle(fontSize: 16)),
+            Text('Benua: $region', style: TextStyle(fontSize: 18)),
             SizedBox(height: 10),
-            Text('Benua: $region', style: TextStyle(fontSize: 16)),
+            Text('Populasi: $population', style: TextStyle(fontSize: 18)),
             SizedBox(height: 10),
-            Text('Populasi: $population', style: TextStyle(fontSize: 16)),
-            SizedBox(height: 10),
-            Text('Bahasa: $languages', style: TextStyle(fontSize: 16)),
+            Text('Bahasa: $languages', style: TextStyle(fontSize: 18)),
           ],
         ),
       ),
     );
   }
 }
+
+
+
+
+
+// import 'dart:convert';
+// import 'package:flutter/material.dart';
+// import 'package:http/http.dart' as http;
+
+// class HomePage extends StatefulWidget {
+//   const HomePage({super.key});
+
+//   @override
+//   State<HomePage> createState() => _HomePageState();
+// }
+
+// class _HomePageState extends State<HomePage> {
+//   List<dynamic> negara = [];
+//   List<dynamic> favoriteNegara = [];
+//   bool isLoading = true; // Menambahkan loading indicator saat data diambil
+//   String? errorMessage; // Menyimpan pesan error jika ada masalah
+//   int currentIndex = 0; // Menyimpan index tab yang dipilih
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     negaraList();
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: new Image.asset(
+//           "images/logo.png",
+//           width: 200.0,
+//         ),
+//       ),
+//       body: isLoading
+//           ? const Center(
+//               child: CircularProgressIndicator()) // Indikator loading
+//           : errorMessage != null
+//               ? Center(
+//                   child: Text(errorMessage!),
+//                 )
+//               : currentIndex == 0
+//                   // Tab Home
+//                   ? ListView.builder(
+//                       itemCount: negara.length,
+//                       itemBuilder: (context, index) {
+//                         final negaras = negara[index];
+//                         final name =
+//                             negaras["name"]?["common"] ?? "Unknown Country";
+//                         final capital = negaras["capital"]?.isNotEmpty ?? false
+//                             ? negaras["capital"][0]
+//                             : "No Capital";
+//                         final region = negaras["region"] ?? "No Region";
+
+//                         return Card(
+//                           margin: const EdgeInsets.symmetric(
+//                               horizontal: 10, vertical: 5),
+//                           child: ListTile(
+//                             leading: CircleAvatar(
+//                               child: Text(name[0]), // Mengambil huruf pertama
+//                             ),
+//                             title: Text(name),
+//                             subtitle: Text('Ibukota: $capital\nBenua: $region'),
+//                             trailing: IconButton(
+//                               icon: Icon(
+//                                 Icons.favorite,
+//                                 color: favoriteNegara.contains(negaras)
+//                                     ? Colors.red
+//                                     : Colors.grey,
+//                               ),
+//                               onPressed: () {
+//                                 setState(() {
+//                                   if (favoriteNegara.contains(negaras)) {
+//                                     favoriteNegara.remove(negaras);
+//                                   } else {
+//                                     favoriteNegara.add(negaras);
+//                                   }
+//                                 });
+//                               },
+//                             ),
+//                             onTap: () {
+//                               // Menavigasi ke halaman detail saat diklik
+//                               Navigator.push(
+//                                 context,
+//                                 MaterialPageRoute(
+//                                   builder: (context) =>
+//                                       DetailNegaraPage(negara: negaras),
+//                                 ),
+//                               );
+//                             },
+//                           ),
+//                         );
+//                       },
+//                     )
+//                   // Tab Favorite
+//                   : ListView.builder(
+//                       itemCount: favoriteNegara.length,
+//                       itemBuilder: (context, index) {
+//                         final negaras = favoriteNegara[index];
+//                         final name =
+//                             negaras["name"]?["common"] ?? "Unknown Country";
+//                         final capital = negaras["capital"]?.isNotEmpty ?? false
+//                             ? negaras["capital"][0]
+//                             : "No Capital";
+//                         final region = negaras["region"] ?? "No Region";
+
+//                         return Card(
+//                           margin: const EdgeInsets.symmetric(
+//                               horizontal: 10, vertical: 5),
+//                           child: ListTile(
+//                             leading: CircleAvatar(
+//                               child: Text(name[0]), // Mengambil huruf pertama
+//                             ),
+//                             title: Text(name),
+//                             subtitle: Text('Ibukota: $capital\nBenua: $region'),
+//                             onTap: () {
+//                               // Menavigasi ke halaman detail saat diklik
+//                               Navigator.push(
+//                                 context,
+//                                 MaterialPageRoute(
+//                                   builder: (context) =>
+//                                       DetailNegaraPage(negara: negaras),
+//                                 ),
+//                               );
+//                             },
+//                           ),
+//                         );
+//                       },
+//                     ),
+//       bottomNavigationBar: BottomNavigationBar(
+//         currentIndex: currentIndex,
+//         onTap: (index) {
+//           setState(() {
+//             currentIndex = index;
+//           });
+//         },
+//         items: const [
+//           BottomNavigationBarItem(
+//             icon: Icon(Icons.home),
+//             label: 'Home',
+//           ),
+//           BottomNavigationBarItem(
+//             icon: Icon(Icons.favorite),
+//             label: 'Favorite',
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+
+//   void negaraList() async {
+//     const url = 'https://restcountries.com/v3.1/all';
+//     final uri = Uri.parse(url);
+//     try {
+//       final response = await http.get(uri);
+//       if (response.statusCode == 200) {
+//         final body = response.body;
+//         final json = jsonDecode(body);
+//         setState(() {
+//           negara = json;
+//           isLoading = false;
+//         });
+//       } else {
+//         setState(() {
+//           isLoading = false;
+//           errorMessage =
+//               "Failed to fetch data: ${response.statusCode}. Please try again.";
+//         });
+//       }
+//     } catch (e) {
+//       setState(() {
+//         isLoading = false;
+//         errorMessage = "Something went wrong. Please check your connection.";
+//       });
+//     }
+//   }
+// }
+
+// class DetailNegaraPage extends StatelessWidget {
+//   final Map<String, dynamic> negara;
+
+//   const DetailNegaraPage({Key? key, required this.negara}) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final name = negara["name"]?["common"] ?? "Unknown Country";
+//     final capital = negara["capital"]?.isNotEmpty ?? false
+//         ? negara["capital"][0]
+//         : "No Capital";
+//     final region = negara["region"] ?? "No Region";
+//     final population = negara["population"]?.toString() ?? "No Data";
+//     final languages = negara["languages"] != null
+//         ? negara["languages"].values.join(", ")
+//         : "No Language Info";
+
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: Text(name),
+//       ),
+//       body: Padding(
+//         padding: const EdgeInsets.all(16.0),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Text(
+//               'Nama Negara: $name',
+//               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+//             ),
+//             SizedBox(height: 10),
+//             Text('Ibukota: $capital', style: TextStyle(fontSize: 16)),
+//             SizedBox(height: 10),
+//             Text('Benua: $region', style: TextStyle(fontSize: 16)),
+//             SizedBox(height: 10),
+//             Text('Populasi: $population', style: TextStyle(fontSize: 16)),
+//             SizedBox(height: 10),
+//             Text('Bahasa: $languages', style: TextStyle(fontSize: 16)),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
 
 
 
