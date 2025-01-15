@@ -11,6 +11,10 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<dynamic> negara = [];
+  List<dynamic> favoriteNegara = [];
+  bool isLoading = true; // Menambahkan loading indicator saat data diambil
+  String? errorMessage; // Menyimpan pesan error jika ada masalah
+  int currentIndex = 0; // Menyimpan index tab yang dipilih
 
   @override
   void initState() {
@@ -22,21 +26,103 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Daftar Negara"),
+        title: new Image.asset(
+          "images/logo.png",
+          width: 200.0,
+        ),
       ),
-      body: ListView.builder(
-        itemCount: negara.length,
-        itemBuilder: (context, index) {
-          final negaras = negara[index];
-          final name =
-              (negaras["capital"] != null && negaras["capital"].isNotEmpty)
-                  ? negaras["capital"][0]
-                  : "No Capital";
-          return ListTile(
-            title: Text(name),
-            subtitle: Text(negaras["name"]["common"] ?? "Unknown Country"),
-          );
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator()) // Indikator loading
+          : errorMessage != null
+              ? Center(
+                  child: Text(errorMessage!),
+                )
+              : currentIndex == 0
+                  // Tab Home
+                  ? ListView.builder(
+                      itemCount: negara.length,
+                      itemBuilder: (context, index) {
+                        final negaras = negara[index];
+                        final name =
+                            negaras["name"]?["common"] ?? "Unknown Country";
+                        final capital = negaras["capital"]?.isNotEmpty ?? false
+                            ? negaras["capital"][0]
+                            : "No Capital";
+                        final region = negaras["region"] ?? "No Region";
+
+                        return Card(
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              child: Text(name[0]),
+                            ),
+                            title: Text(name),
+                            subtitle: Text('Ibukota: $capital\nBenua: $region'),
+                            trailing: IconButton(
+                              icon: Icon(
+                                Icons.favorite,
+                                color: favoriteNegara.contains(negaras)
+                                    ? Colors.red
+                                    : Colors.grey,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  if (favoriteNegara.contains(negaras)) {
+                                    favoriteNegara.remove(negaras);
+                                  } else {
+                                    favoriteNegara.add(negaras);
+                                  }
+                                });
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                  // Tab Favorite
+                  : ListView.builder(
+                      itemCount: favoriteNegara.length,
+                      itemBuilder: (context, index) {
+                        final negaras = favoriteNegara[index];
+                        final name =
+                            negaras["name"]?["common"] ?? "Unknown Country";
+                        final capital = negaras["capital"]?.isNotEmpty ?? false
+                            ? negaras["capital"][0]
+                            : "No Capital";
+                        final region = negaras["region"] ?? "No Region";
+
+                        return Card(
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              child: Text(name[0]),
+                            ),
+                            title: Text(name),
+                            subtitle: Text('Ibukota: $capital\nBenua: $region'),
+                          ),
+                        );
+                      },
+                    ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: (index) {
+          setState(() {
+            currentIndex = index;
+          });
         },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite),
+            label: 'Favorite',
+          ),
+        ],
       ),
     );
   }
@@ -44,19 +130,39 @@ class _HomePageState extends State<HomePage> {
   void negaraList() async {
     const url = 'https://restcountries.com/v3.1/all';
     final uri = Uri.parse(url);
-    final response = await http.get(uri);
-    if (response.statusCode == 200) {
-      final body = response.body;
-      final json = jsonDecode(body);
+    try {
+      final response = await http.get(uri);
+      if (response.statusCode == 200) {
+        final body = response.body;
+        final json = jsonDecode(body);
+        setState(() {
+          negara = json;
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+          errorMessage =
+              "Failed to fetch data: ${response.statusCode}. Please try again.";
+        });
+      }
+    } catch (e) {
       setState(() {
-        negara = json;
+        isLoading = false;
+        errorMessage = "Something went wrong. Please check your connection.";
       });
-    } else {
-      // Handle error
-      print("Failed to fetch data: ${response.statusCode}");
     }
   }
 }
+
+
+
+
+
+
+
+
+
 
 
 // class TabBarScreen extends StatefulWidget {
