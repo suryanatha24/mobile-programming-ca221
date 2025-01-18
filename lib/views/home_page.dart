@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'detail.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -11,10 +12,12 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<dynamic> negara = [];
+  List<dynamic> filteredNegara = [];
   List<dynamic> favoriteNegara = [];
   bool isLoading = true;
   String? errorMessage;
   int currentIndex = 0;
+  String searchQuery = "";
 
   @override
   void initState() {
@@ -49,7 +52,7 @@ class _HomePageState extends State<HomePage> {
               : IndexedStack(
                   index: currentIndex,
                   children: [
-                    buildNegaraList(),
+                    buildSearchAndList(),
                     buildFavoriteList(),
                   ],
                 ),
@@ -76,19 +79,48 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget buildNegaraList() {
-    return ListView.builder(
-      itemCount: negara.length,
-      itemBuilder: (context, index) {
-        final negaras = negara[index];
-        final name = negaras["name"]?["common"] ?? "Unknown Country";
-        final capital = (negaras["capital"]?.isNotEmpty ?? false)
-            ? negaras["capital"][0]
-            : "No Capital";
-        final region = negaras["region"] ?? "No Region";
+  Widget buildSearchAndList() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: TextField(
+            onChanged: (value) {
+              setState(() {
+                searchQuery = value.toLowerCase();
+                filteredNegara = negara
+                    .where((negara) => (negara["name"]?["common"] ?? "")
+                        .toString()
+                        .toLowerCase()
+                        .contains(searchQuery))
+                    .toList();
+              });
+            },
+            decoration: InputDecoration(
+              hintText: "Cari negara...",
+              prefixIcon: const Icon(Icons.search),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: filteredNegara.length,
+            itemBuilder: (context, index) {
+              final negaras = filteredNegara[index];
+              final name = negaras["name"]?["common"] ?? "Unknown Country";
+              final capital = (negaras["capital"]?.isNotEmpty ?? false)
+                  ? negaras["capital"][0]
+                  : "No Capital";
+              final region = negaras["region"] ?? "No Region";
 
-        return buildNegaraCard(negaras, name, capital, region);
-      },
+              return buildNegaraCard(negaras, name, capital, region);
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -187,6 +219,7 @@ class _HomePageState extends State<HomePage> {
 
         setState(() {
           negara = json;
+          filteredNegara = json; // Initialize with the full list
           isLoading = false;
         });
       } else {
@@ -202,55 +235,5 @@ class _HomePageState extends State<HomePage> {
         errorMessage = "Something went wrong. Please check your connection.";
       });
     }
-  }
-}
-
-class DetailNegaraPage extends StatelessWidget {
-  final Map<String, dynamic> negara;
-
-  const DetailNegaraPage({Key? key, required this.negara}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final name = negara["name"]?["common"] ?? "Unknown Country";
-    final capital = (negara["capital"]?.isNotEmpty ?? false)
-        ? negara["capital"][0]
-        : "No Capital";
-    final region = negara["region"] ?? "No Region";
-    final population = negara["population"]?.toString() ?? "No Data";
-    final languages = negara["languages"] != null
-        ? (negara["languages"] as Map<String, dynamic>).values.join(", ")
-        : "No Language Info";
-
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: Text(name),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Nama Negara: $name',
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.blueAccent,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text('Ibukota: $capital', style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 10),
-            Text('Benua: $region', style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 10),
-            Text('Populasi: $population', style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 10),
-            Text('Bahasa: $languages', style: const TextStyle(fontSize: 18)),
-          ],
-        ),
-      ),
-    );
   }
 }
