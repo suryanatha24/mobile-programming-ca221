@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class DetailNegaraPage extends StatelessWidget {
   final Map<String, dynamic> negara;
@@ -12,10 +13,11 @@ class DetailNegaraPage extends StatelessWidget {
         ? negara["capital"][0]
         : "No Capital";
     final region = negara["region"] ?? "No Region";
-    final population = negara["population"]?.toString() ?? "No Data";
+    final population = NumberFormat("#,###").format(negara["population"] ?? 0);
     final languages = negara["languages"] != null
         ? (negara["languages"] as Map<String, dynamic>).values.join(", ")
         : "No Language Info";
+    final  flag = negara['flags']['png'] ?? "";
 
     return Scaffold(
       appBar: AppBar(
@@ -27,6 +29,8 @@ class DetailNegaraPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Image(image: NetworkImage(flag), height: 100,),
+            SizedBox(height: 16),
             Text(
               'Nama Negara: $name',
               style: const TextStyle(
@@ -35,13 +39,13 @@ class DetailNegaraPage extends StatelessWidget {
                 color: Colors.blueAccent,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text('Ibukota: $capital', style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Text('Benua: $region', style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Text('Populasi: $population', style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Text('Bahasa: $languages', style: const TextStyle(fontSize: 18)),
           ],
         ),

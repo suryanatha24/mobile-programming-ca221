@@ -37,7 +37,7 @@ class _HomePageState extends State<HomePage> {
             width: 200.0,
           ),
         ),
-      ),
+      ),  
       body: isLoading
           ? const Center(
               child: CircularProgressIndicator.adaptive(),
@@ -115,8 +115,8 @@ class _HomePageState extends State<HomePage> {
                   ? negaras["capital"][0]
                   : "No Capital";
               final region = negaras["region"] ?? "No Region";
-
-              return buildNegaraCard(negaras, name, capital, region);
+              final flag = negaras['flags']['png'] ?? "" ;
+              return buildNegaraCard(negaras, name, capital, region, flag);
             },
           ),
         ),
@@ -134,14 +134,15 @@ class _HomePageState extends State<HomePage> {
             ? negaras["capital"][0]
             : "No Capital";
         final region = negaras["region"] ?? "No Region";
+        final flag = negaras['flag'] ?? "-";
 
-        return buildNegaraCard(negaras, name, capital, region);
+        return buildNegaraCard(negaras, name, capital, region, flag);
       },
     );
   }
 
   Widget buildNegaraCard(
-      Map<String, dynamic> negara, String name, String capital, String region) {
+      Map<String, dynamic> negara, String name, String capital, String region, String flag) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       shape: RoundedRectangleBorder(
@@ -150,11 +151,9 @@ class _HomePageState extends State<HomePage> {
       elevation: 5,
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: Colors.blueAccent,
-          child: Text(
-            name[0],
-            style: const TextStyle(color: Colors.white),
-          ),
+          backgroundColor: Colors.transparent,
+          backgroundImage: NetworkImage(flag),
+          radius: 30.0,
         ),
         title: Text(
           name,
