@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:negara_apps/views/home_page.dart';
 
+
 void main() {
+  
   runApp(NegaraApps());
 }
 

@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'detail.dart';
+import 'package:negara_apps/model/country.dart';
+import 'package:negara_apps/repository/favorites_country_repository.dart';
+import 'detail_negara_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -11,9 +13,10 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<dynamic> negara = [];
-  List<dynamic> filteredNegara = [];
-  List<dynamic> favoriteNegara = [];
+  final FavoritesCountryRepository _repository = FavoritesCountryRepository();
+  List<Country> negara = [];
+  List<Country> filteredNegara = [];
+  List<Country> favoriteNegara = [];
   bool isLoading = true;
   String? errorMessage;
   int currentIndex = 0;
@@ -37,7 +40,7 @@ class _HomePageState extends State<HomePage> {
             width: 200.0,
           ),
         ),
-      ),  
+      ),
       body: isLoading
           ? const Center(
               child: CircularProgressIndicator.adaptive(),
@@ -89,10 +92,8 @@ class _HomePageState extends State<HomePage> {
               setState(() {
                 searchQuery = value.toLowerCase();
                 filteredNegara = negara
-                    .where((negara) => (negara["name"]?["common"] ?? "")
-                        .toString()
-                        .toLowerCase()
-                        .contains(searchQuery))
+                    .where((country) =>
+                        country.name.toLowerCase().contains(searchQuery))
                     .toList();
               });
             },
@@ -109,14 +110,8 @@ class _HomePageState extends State<HomePage> {
           child: ListView.builder(
             itemCount: filteredNegara.length,
             itemBuilder: (context, index) {
-              final negaras = filteredNegara[index];
-              final name = negaras["name"]?["common"] ?? "Unknown Country";
-              final capital = (negaras["capital"]?.isNotEmpty ?? false)
-                  ? negaras["capital"][0]
-                  : "No Capital";
-              final region = negaras["region"] ?? "No Region";
-              final flag = negaras['flags']['png'] ?? "" ;
-              return buildNegaraCard(negaras, name, capital, region, flag);
+              final country = filteredNegara[index];
+              return buildNegaraCard(country);
             },
           ),
         ),
@@ -128,21 +123,13 @@ class _HomePageState extends State<HomePage> {
     return ListView.builder(
       itemCount: favoriteNegara.length,
       itemBuilder: (context, index) {
-        final negaras = favoriteNegara[index];
-        final name = negaras["name"]?["common"] ?? "Unknown Country";
-        final capital = (negaras["capital"]?.isNotEmpty ?? false)
-            ? negaras["capital"][0]
-            : "No Capital";
-        final region = negaras["region"] ?? "No Region";
-        final flag = negaras['flag'] ?? "-";
-
-        return buildNegaraCard(negaras, name, capital, region, flag);
+        final country = favoriteNegara[index];
+        return buildNegaraCard(country);
       },
     );
   }
 
-  Widget buildNegaraCard(
-      Map<String, dynamic> negara, String name, String capital, String region, String flag) {
+  Widget buildNegaraCard(Country country) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       shape: RoundedRectangleBorder(
@@ -152,40 +139,45 @@ class _HomePageState extends State<HomePage> {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: Colors.transparent,
-          backgroundImage: NetworkImage(flag),
+          backgroundImage: NetworkImage(country.flagUrl),
           radius: 30.0,
         ),
         title: Text(
-          name,
+          country.name,
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
         subtitle: Text(
-          'Ibukota: $capital\nBenua: $region',
+          'Ibukota: ${country.capital}\nBenua: ${country.region}',
           style: const TextStyle(fontSize: 14),
         ),
-        trailing: IconButton(
-          icon: Icon(
-            favoriteNegara.any((item) =>
-                    item["name"]?["common"] == negara["name"]?["common"])
-                ? Icons.favorite
-                : Icons.favorite_border,
-            color: favoriteNegara.any((item) =>
-                    item["name"]?["common"] == negara["name"]?["common"])
-                ? Colors.red
-                : Colors.grey,
-          ),
-          onPressed: () {
-            toggleFavorite(negara);
+          trailing: FutureBuilder<bool>(
+          future: _repository.isFavorite(country.name),
+          builder: (context, snapshot) {
+            final isFavorite = snapshot.data ?? false;
+            return IconButton(
+              icon: Icon(
+                isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: isFavorite ? Colors.red : Colors.grey,
+              ),
+              onPressed: () async {
+                if (isFavorite) {
+                  await _repository.removeFavorite(country.name);
+                } else {
+                  await _repository.addFavorite(country);
+                }
+                fetchFavorites(); // Refresh favorites
+              },
+            );
           },
         ),
         onTap: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => DetailNegaraPage(negara: negara),
+              builder: (context) => DetailNegaraPage(country: country),
             ),
           );
         },
@@ -193,15 +185,22 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void toggleFavorite(Map<String, dynamic> negara) {
+  void toggleFavorite(Country country) {
     setState(() {
-      if (favoriteNegara.any(
-          (item) => item["name"]?["common"] == negara["name"]?["common"])) {
-        favoriteNegara.removeWhere(
-            (item) => item["name"]?["common"] == negara["name"]?["common"]);
+      if (favoriteNegara.contains(country)) {
+        favoriteNegara.remove(country);
       } else {
-        favoriteNegara.add(negara);
+        favoriteNegara.add(country);
       }
+    });
+  }
+
+  Future<void> fetchFavorites() async {
+    final favorites = await _repository.getFavorites();
+    setState(() {
+      favoriteNegara = List.generate(favorites.length, (index) {
+        return Country.fromMap(favorites[index]);
+      });
     });
   }
 
@@ -217,8 +216,8 @@ class _HomePageState extends State<HomePage> {
         final List<dynamic> json = jsonDecode(body);
 
         setState(() {
-          negara = json;
-          filteredNegara = json; // Initialize with the full list
+          negara = json.map((data) => Country.fromJson(data)).toList();
+          filteredNegara = negara; // Initialize with the full list
           isLoading = false;
         });
       } else {
